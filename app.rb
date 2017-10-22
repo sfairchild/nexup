@@ -16,11 +16,9 @@ get '/' do
 end
 
 post '/slack' do
-  puts params
-  filename = epoch_timestamp + '.gif'
+
   Thread.new do
-    `./py_scripts/servo.py #{params['text']}`
-    response_url = params['response_url']
+    # `./py_scripts/servo.py #{params['text']}`
     `./py_scripts/gifcam.py #{filename}`
     body = {
       text: "<http://nexup-hackathon.ngrok.io/images/gifs/#{filename}|Current game room status!!!>",
@@ -46,7 +44,7 @@ post '/slack' do
       ]
     }.to_json
 
-    HTTParty.post response_url, body: body
+    HTTParty.post params['response_url'], body: body
   end
 
   content_type :json
@@ -70,11 +68,15 @@ get '/ip' do
 end
 
 def ip_address
-  @ip ||= ip = Socket.ip_address_list.detect{|intf| intf.ipv4_private?}.ip_address
+  @ip ||= Socket.ip_address_list.detect{|intf| intf.ipv4_private?}.ip_address
 end
 
 def epoch_timestamp
   Time.now.strftime('%s')
+end
+
+def filename
+  @filename ||= epoch_timestamp + '.gif'
 end
 
 class Game < ActiveRecord::Base

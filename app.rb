@@ -15,45 +15,24 @@ get '/' do
   "<a href='#{last_gif}'>#{last_gif}</a>"
 end
 
+# Initial Command
 post '/slack' do
   puts params
-  requested_game = Game.find_by_name(params['text'].strip.downcase)
+  request_text = params['text'].strip.downcase
+  return HelpResponse.new.to_json if request_text.match(/help/)
+
+  requested_game = Game.find_by_name(request_text)
   requested_game = Game.default unless requested_game
+
   Thread.new do
     `./py_scripts/servo.py #{request_game.angle.pivot} #{request_game.angle.zoom_x} #{request_game.angle.zoom_y} #{request_game.angle.zoom_w} #{request_game.angle.zoom_h}`
     `./py_scripts/gifcam.py #{filename}`
-    body = {
-      text: "<http://nexup-hackathon.ngrok.io/images/gifs/#{filename}|Current game room status!!!>",
-      response_type: 'in_channel',
-      attachments: [
-        {
-          title: 'Do you want to pwn someone?',
-          callback_id: 'http://nexup-hackathon.ngrok.io/play',
-          fallback: 'You device does not support this type of message',
-          actions: [
-            {
-              name: 'yes',
-              text: 'Of course',
-              type: 'button'
-            }, {
-              name: 'no',
-              text: 'I will let them live another day',
-              type: 'button',
-              style: 'danger'
-            }
-          ]
-        }
-      ]
-    }.to_json
 
-    HTTParty.post params['response_url'], body: body
+    HTTParty.post params['response_url'], body: GifResponse.new(filename).to_json
   end
 
   content_type :json
-  {
-    text: 'Please wait while we get in position and create some awesomeness',
-    response_type: 'in_channel'
-  }.to_json
+  DefaultResponse.new.to_json
 end
 
 post '/play' do

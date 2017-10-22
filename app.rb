@@ -6,9 +6,14 @@ require 'httparty'
 require "sinatra/activerecord"
 require './lib/angle'
 require './lib/game'
+require './lib/response'
 
 set :database, {adapter: "sqlite3", database: "nexup.sqlite3"}
 set :bind, '0.0.0.0'
+
+before do
+  content_type :json
+end
 
 get '/' do
   last_gif = Dir.glob("/home/pi/app/public/*.gif").sort.last.gsub(/^.+\//, '')
@@ -25,18 +30,17 @@ post '/slack' do
   requested_game = Game.default unless requested_game
 
   Thread.new do
-    `./py_scripts/servo.py #{request_game.angle.pivot} #{request_game.angle.zoom_x} #{request_game.angle.zoom_y} #{request_game.angle.zoom_w} #{request_game.angle.zoom_h}`
-    `./py_scripts/gifcam.py #{filename}`
+    $stdout.print "./py_scripts/servo.py #{request_game.angle.pivot} #{request_game.angle.zoom_x} #{request_game.angle.zoom_y} #{request_game.angle.zoom_w} #{request_game.angle.zoom_h}\n"
+
+    puts "./py_scripts/gifcam.py #{filename}"
 
     HTTParty.post params['response_url'], body: GifResponse.new(filename).to_json
   end
 
-  content_type :json
   DefaultResponse.new.to_json
 end
 
 post '/play' do
-  content_type :json
   {
     text: 'Prepair to die',
     replace_original: false,

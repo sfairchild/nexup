@@ -21,9 +21,9 @@ end
 
 class HelpResponse < Response
   def initialize
-    games = Games.all.map(&:name)
+    games = Game.all.map(&:name)
     @response = {
-      text: "You can request and of the following game: #{games.join(', ')},"
+      text: "You can request and of the following games: #{games.join(', ')},"
     }
   end
 end

@@ -4,6 +4,8 @@ require 'resolv-replace'
 require 'json'
 require 'httparty'
 require "sinatra/activerecord"
+require './lib/angle'
+require './lib/game'
 
 set :database, {adapter: "sqlite3", database: "nexup.sqlite3"}
 set :bind, '0.0.0.0'
@@ -73,9 +75,6 @@ end
 
 def epoch_timestamp
   Time.now.strftime('%s')
-end
-
-class Angle < ActiveRecord::Base
 end
 
 class Game < ActiveRecord::Base

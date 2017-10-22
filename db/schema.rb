@@ -29,6 +29,7 @@ ActiveRecord::Schema.define(version: 20171022111717) do
   end
 
   create_table "battles", force: :cascade do |t|
+    t.string "name"
     t.integer "game_id"
     t.index ["game_id"], name: "index_battles_on_game_id"
   end

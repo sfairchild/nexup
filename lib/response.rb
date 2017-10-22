@@ -10,12 +10,12 @@ class Response
 end
 
 class DefaultResponse < Response
-  def initialize
+  def initialize(game)
     super
     @response = {
-      text: 'Please wait while we get in position and create some awesomeness',
-      response_type: 'in_channel'
+      text: 'Please wait while we get in position and create some awesomeness'
     }
+    @response[:response_type] = 'in_channel' unless game.default?
   end
 end
 
@@ -36,7 +36,7 @@ class GifResponse < Response
       response_type: 'in_channel',
       attachments: [
         {
-          title: "Do you want to pwn someone in #{game}?",
+          title: "#{battle.name} was created \n Do you want to pwn someone in #{game}?",
           callback_id: "game_on/#{game}/#{battle.id}",
           fallback: 'You device does not support this type of message',
           actions: [
@@ -119,29 +119,31 @@ class SelectGameResponse < Response
 end
 
 class JoinedGameResponse < Response
-  def initialize(user)
+  def initialize(user, battle)
     @response = {
+      response_type: 'in_channel',
       replace_original: false,
-      text: "@#{user} is in"
+      text: "<@#{user}> joined in the #{battle.name}, may God have mercy on his soul"
     }
   end
 end
 
 class NoGameResponse < Response
-  def initialize(user)
+  def initialize(user, battle)
     @response = {
+      response_type: 'in_channel',
       replace_original: false,
-      text: "@#{user} is out"
+      text: "@#{user} is out of the #{battle.name}, guess they couldn't handle the preasure"
     }
   end
 end
 
 class NewGameResponse < Response
   def initialize(game)
-    battle = Battel.create(game: Game.find_by_name(game))
+    battle = Battle.create(game: Game.find_by_name(game))
     @response = {
-      text: "Who is up for playing #{game}",
-      replace_original: true,
+      text: "The #{battle.name} was just created.",
+      replace_original: false,
       response_type: 'in_channel',
       attachments: [
         {

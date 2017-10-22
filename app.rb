@@ -1,5 +1,6 @@
 require 'sinatra'
 require 'socket'
+require 'faker'
 require 'resolv-replace'
 require 'json'
 require 'httparty'
@@ -46,7 +47,7 @@ post '/slack' do
     end
   end
 
-  DefaultResponse.new.to_json
+  DefaultResponse.new(requested_game).to_json
 end
 
 post '/play' do
@@ -62,13 +63,17 @@ get '/ip' do
 end
 
 def game_on(values)
+  content_type :json
   begin
     battle = Battle.find(values[:battle])
     battle_user = BattleUser.create(user_name: values[:user], battle: battle)
-    (values[:value] == 'yes' ? JoinedGameResponse.new(values[:user]) : NoGameResponse.new(values[:user])).to_json
-  rescue ActiveModel::Errors =>
-    {}.to_json
+    if battle_user.save
+      return (values[:value] == 'yes' ? JoinedGameResponse.new(values[:user], battle) : NoGameResponse.new(values[:user], battle)).to_json
+    end
+  rescue ActiveModel::Errors => e
+    e
   end
+  200
 end
 
 def new_game(value)

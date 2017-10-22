@@ -1,6 +1,7 @@
 class CreateBattle < ActiveRecord::Migration[5.1]
   def change
     create_table :battles do |t|
+      t.string :name
       t.references :game
     end
 

@@ -35,9 +35,9 @@ post '/slack' do
 
   Thread.new do
     filename = epoch_timestamp + '.gif'
-    # `./py_scripts/servo.py #{requested_game.angle.pivot}`
+    `./py_scripts/servo.py #{requested_game.angle.pivot}`
 
-    # `./py_scripts/gifcam.py #{filename} #{requested_game.angle.zoom_x} #{requested_game.angle.zoom_y} #{requested_game.angle.zoom_w} #{requested_game.angle.zoom_h}`
+    `./py_scripts/gifcam.py #{filename} #{requested_game.angle.zoom_x} #{requested_game.angle.zoom_y} #{requested_game.angle.zoom_w} #{requested_game.angle.zoom_h}`
 
     if requested_game.default?
       HTTParty.post params['response_url'], body: DefaultGifResponse.new(filename).to_json

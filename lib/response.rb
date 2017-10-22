@@ -21,7 +21,7 @@ end
 
 class HelpResponse < Response
   def initialize
-    games = Game.all.map(&:name)
+    games = Game.available.map(&:name)
     @response = {
       text: "You can request and of the following games: #{games.join(', ')},"
     }
@@ -81,7 +81,7 @@ class DefaultGifResponse < Response
         }
       ]
     }
-    @response[:attachments][0][:actions][0][:options] = Game.all.map{|game| { text: game.name, value: game.name } }
+    @response[:attachments][0][:actions][0][:options] = Game.available.map{|game| { text: game.name, value: game.name } }
   end
 end
 
@@ -95,7 +95,7 @@ end
 
 class SelectGameResponse < Response
   def initialize
-    games = Game.all.map {|game| {text: game.name, value: game.name} }
+    games = Game.available.map {|game| {text: game.name, value: game.name} }
     @response = {
       text: 'Ok',
       replace_original: true,

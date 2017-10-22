@@ -16,7 +16,7 @@ get '/' do
 end
 
 post '/slack' do
-
+  puts params
   Thread.new do
     # `./py_scripts/servo.py #{params['text']}`
     `./py_scripts/gifcam.py #{filename}`

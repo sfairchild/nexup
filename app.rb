@@ -17,8 +17,10 @@ end
 
 post '/slack' do
   puts params
+  requested_game = Game.find_by_name(params['text'].strip.downcase)
+  requested_game = Game.default unless requested_game
   Thread.new do
-    # `./py_scripts/servo.py #{params['text']}`
+    `./py_scripts/servo.py #{request_game.angle.pivot} #{request_game.angle.zoom_x} #{request_game.angle.zoom_y} #{request_game.angle.zoom_w} #{request_game.angle.zoom_h}`
     `./py_scripts/gifcam.py #{filename}`
     body = {
       text: "<http://nexup-hackathon.ngrok.io/images/gifs/#{filename}|Current game room status!!!>",

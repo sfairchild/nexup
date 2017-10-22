@@ -10,15 +10,27 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20171022045710) do
+ActiveRecord::Schema.define(version: 20171022111717) do
 
   create_table "angles", force: :cascade do |t|
     t.string "name"
-    t.decimal "pivot"
+    t.integer "pivot"
     t.decimal "zoom_x", default: "0.0"
     t.decimal "zoom_y", default: "0.0"
     t.decimal "zoom_w", default: "1.0"
     t.decimal "zoom_h", default: "1.0"
+  end
+
+  create_table "battle_users", force: :cascade do |t|
+    t.integer "battle_id"
+    t.string "user_name"
+    t.boolean "in"
+    t.index ["battle_id"], name: "index_battle_users_on_battle_id"
+  end
+
+  create_table "battles", force: :cascade do |t|
+    t.integer "game_id"
+    t.index ["game_id"], name: "index_battles_on_game_id"
   end
 
   create_table "games", force: :cascade do |t|

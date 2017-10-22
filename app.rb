@@ -7,6 +7,8 @@ require "sinatra/activerecord"
 require './lib/angle'
 require './lib/game'
 require './lib/response'
+require './lib/battle'
+require './lib/battle_user'
 
 set :database, {adapter: "sqlite3", database: "nexup.sqlite3"}
 set :bind, '0.0.0.0'
@@ -27,17 +29,20 @@ post '/slack' do
   return HelpResponse.new.to_json if request_text.match(/help/)
 
   requested_game = Game.find_by_name(request_text)
-  requested_game = Game.default unless requested_game
+  unless requested_game
+    requested_game = Game.default
+  end
 
   Thread.new do
-    $stdout.print "./py_scripts/servo.py #{request_game.angle.pivot} #{request_game.angle.zoom_x} #{request_game.angle.zoom_y} #{request_game.angle.zoom_w} #{request_game.angle.zoom_h}\n"
+    filename = epoch_timestamp + '.gif'
+    # `./py_scripts/servo.py #{requested_game.angle.pivot}`
 
-    puts "./py_scripts/gifcam.py #{filename}"
+    # `./py_scripts/gifcam.py #{filename} #{requested_game.angle.zoom_x} #{requested_game.angle.zoom_y} #{requested_game.angle.zoom_w} #{requested_game.angle.zoom_h}`
 
     if requested_game.default?
       HTTParty.post params['response_url'], body: DefaultGifResponse.new(filename).to_json
     else
-      HTTParty.post params['response_url'], body: GifResponse.new(filename).to_json
+      HTTParty.post params['response_url'], body: GifResponse.new(filename, requested_game.name).to_json
     end
   end
 
@@ -45,15 +50,33 @@ post '/slack' do
 end
 
 post '/play' do
-  {
-    text: 'Prepair to die',
-    replace_original: false,
-    response_type: 'In Channel'
-  }.to_json
+  puts JSON.parse(params['payload'])
+  payload = get_payload(JSON.parse(params['payload']))
+  puts 'PAYLOAD'
+  puts payload
+  send(payload[:action], payload)
 end
 
 get '/ip' do
   ip_address
+end
+
+def game_on(values)
+  begin
+    battle = Battle.find(values[:battle])
+    battle_user = BattleUser.create(user_name: values[:user], battle: battle)
+    (values[:value] == 'yes' ? JoinedGameResponse.new(values[:user]) : NoGameResponse.new(values[:user])).to_json
+  rescue ActiveModel::Errors =>
+    {}.to_json
+  end
+end
+
+def new_game(value)
+  (value[:value] == 'yes' ? SelectGameResponse.new : OhWellResponse.new).to_json
+end
+
+def select_game(values)
+  NewGameResponse.new(values[:value]).to_json
 end
 
 def ip_address
@@ -64,9 +87,14 @@ def epoch_timestamp
   Time.now.strftime('%s')
 end
 
-def filename
-  @filename ||= epoch_timestamp + '.gif'
-end
+def get_payload(response)
+  payload = {}
+  payload[:action] = response['callback_id'].match(/(^.+?)\//)[1].to_sym
+  payload[:value] = response['actions'][0]['selected_options'] ? response['actions'][0]['selected_options'][0]['value'] : response['actions'][0]['name']
+  payload[:user] = response['user']['name']
 
-class Game < ActiveRecord::Base
+  battle = response['callback_id'].match(/^.+\/.+\/(.+)/)
+  payload[:battle] = battle[1] if battle
+
+  payload
 end

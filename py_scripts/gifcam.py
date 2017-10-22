@@ -26,6 +26,7 @@ camera.resolution = (540, 405)
 camera.rotation = 90
 camera.brightness = 70
 camera.image_effect = 'none'
+# camera.zoom = (sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5])
 
 try:
       print('Gif capture Started')

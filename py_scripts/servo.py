@@ -1,16 +1,8 @@
 #!/usr/bin/python
 
-# import picamera
 import RPi.GPIO as GPIO
 import sys
 from time import sleep
-
-camera = picamera.PiCamera()
-camera.resolution = (540, 405)
-camera.rotation = 90
-camera.brightness = 70
-camera.image_effect = 'none'
-camera.zoom = (sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5])
 
 GPIO.setmode(GPIO.BOARD)
 GPIO.setup(03, GPIO.OUT)
@@ -25,7 +17,6 @@ def SetAngle(angle):
   pwm.ChangeDutyCycle(0)
 
 SetAngle(int(sys.argv[1]))
-# camera.capture('public/images/stills/' + sys.argv[2])
 pwm.stop()
 GPIO.cleanup()
 

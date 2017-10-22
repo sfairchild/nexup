@@ -34,7 +34,11 @@ post '/slack' do
 
     puts "./py_scripts/gifcam.py #{filename}"
 
-    HTTParty.post params['response_url'], body: GifResponse.new(filename).to_json
+    if requested_game.default?
+      HTTParty.post params['response_url'], body: DefaultGifResponse.new(filename).to_json
+    else
+      HTTParty.post params['response_url'], body: GifResponse.new(filename).to_json
+    end
   end
 
   DefaultResponse.new.to_json

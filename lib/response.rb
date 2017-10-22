@@ -75,6 +75,6 @@ class DefaultGifResponse < Response
         }
       ]
     }
-    @response[:attachments][0][:actions][0][:options] = Game.all.map{|game| { text: game.name, value: game.name } }
+    # @response[:attachments][0][:actions][0][:options] = Game.all.map{|game| { text: game.name, value: game.name } }
   end
 end

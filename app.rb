@@ -30,24 +30,28 @@ post '/slack' do
   return HelpResponse.new.to_json if request_text.match(/help/)
 
   requested_game = Game.find_by_name(request_text)
-  unless requested_game
+  battle = Battle.where("lower(name) LIKE lower(?)", "%#{request_text}%").last unless requested_game || request_text.empty?
+
+  unless battle || requested_game
     requested_game = Game.default
   end
 
-  Thread.new do
-    filename = epoch_timestamp + '.gif'
-    `./py_scripts/servo.py #{requested_game.angle.pivot}`
+  unless battle
+    Thread.new do
+      filename = epoch_timestamp + '.gif'
+      `./py_scripts/servo.py #{requested_game.angle.pivot}`
 
-    `./py_scripts/gifcam.py #{filename} #{requested_game.angle.zoom_x} #{requested_game.angle.zoom_y} #{requested_game.angle.zoom_w} #{requested_game.angle.zoom_h}`
+      `./py_scripts/gifcam.py #{filename} #{requested_game.angle.zoom_x} #{requested_game.angle.zoom_y} #{requested_game.angle.zoom_w} #{requested_game.angle.zoom_h}`
 
-    if requested_game.default?
-      HTTParty.post params['response_url'], body: DefaultGifResponse.new(filename).to_json
-    else
-      HTTParty.post params['response_url'], body: GifResponse.new(filename, requested_game.name).to_json
+      if requested_game.default?
+        HTTParty.post params['response_url'], body: DefaultGifResponse.new(filename).to_json
+      else
+        HTTParty.post params['response_url'], body: GifResponse.new(filename, requested_game.name).to_json
+      end
     end
   end
 
-  DefaultResponse.new(requested_game).to_json
+  (battle ? BattleListResponse.new(battle) : DefaultResponse.new(requested_game)).to_json
 end
 
 post '/play' do
@@ -66,7 +70,7 @@ def game_on(values)
   content_type :json
   begin
     battle = Battle.find(values[:battle])
-    battle_user = BattleUser.create(user_name: values[:user], battle: battle)
+    battle_user = BattleUser.create(user_name: values[:user], battle: battle, in: (values[:value] == 'yes'))
     if battle_user.save
       return (values[:value] == 'yes' ? JoinedGameResponse.new(values[:user], battle) : NoGameResponse.new(values[:user], battle)).to_json
     end

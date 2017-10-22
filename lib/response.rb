@@ -133,7 +133,7 @@ class NoGameResponse < Response
     @response = {
       response_type: 'in_channel',
       replace_original: false,
-      text: "@#{user} is out of the #{battle.name}, guess they couldn't handle the preasure"
+      text: "@#{user} is out of the #{battle.name}, guess they couldn't handle the pressure"
     }
   end
 end
@@ -162,6 +162,20 @@ class NewGameResponse < Response
               style: 'danger'
             }
           ]
+        }
+      ]
+    }
+  end
+end
+
+class BattleListResponse < Response
+  def initialize(battle)
+    @response = {
+      text: "The #{battle.name} is raging.",
+      response_type: 'in_channel',
+      attachments: [
+        {
+          title: "These wariors are ready for battle: \n #{battle.battle_users.ready_for_battle.map {|user| "<@#{user.user_name}>"}.join('\n') }"
         }
       ]
     }
